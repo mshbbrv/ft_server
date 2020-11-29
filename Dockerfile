@@ -17,10 +17,6 @@ RUN apt -y install php-curl php-gd php-intl php-mbstring php-soap php-xml php-xm
 #install wget
 RUN apt -y install wget
 
-#assign ownership
-RUN chmod -R 755 /var/www/
-RUN chown -R www-data:www-data /var/www/
-
 #install and configurate phpmyadmin
 RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-english.tar.gz
 RUN tar xvf phpMyAdmin-5.0.4-english.tar.gz && rm -rf phpMyAdmin-5.0.4-english.tar.gz
@@ -29,23 +25,27 @@ COPY /srcs/config.inc.php /var/www/phpmyadmin/
 
 #configurate nginx
 RUN rm -rf /etc/nginx/sites-available/default
-COPY /srcs/nginx.conf /etc/nginx/sites-available/
+COPY /srcs/nginx_ai_on.conf /etc/nginx/sites-available/
 RUN unlink /etc/nginx/sites-enabled/default
-RUN ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled/
+RUN ln -s /etc/nginx/sites-available/nginx_ai_on.conf /etc/nginx/sites-enabled/
 
 #enable on-off autoindex
 RUN mkdir /var/www/autoindex
-COPY /srcs/autoindex_off.sh .
-COPY /srcs/autoindex_on.sh .
+COPY /srcs/ai_off.sh .
+COPY /srcs/ai_on.sh .
 COPY /srcs/start.sh .
-COPY /srcs/nginx.conf /var/www/autoindex/
-COPY /srcs/nginx_autoindex_off.conf /var/www/autoindex/
+COPY /srcs/nginx_ai_on.conf /var/www/autoindex/
+COPY /srcs/nginx_ai_off.conf /var/www/autoindex/
 
 #install and configurate wordpress
 RUN wget https://wordpress.org/latest.tar.gz
 RUN tar xzvf latest.tar.gz && rm -rf latest.tar.gz
 RUN mv wordpress/ /var/www/wordpress
 COPY /srcs/wp-config.php var/www/wordpress/wp-config.php
+
+#assign ownership
+RUN chmod -R 755 /var/www/
+RUN chown -R www-data:www-data /var/www/
 
 #create self-signed ssl certificate
 RUN openssl req -x509 -sha256 -nodes -newkey rsa:2048 \
